@@ -216,7 +216,26 @@ export class Droppable implements OnInit, OnDestroy {
                             this.dragOver(dragEvent, result);
                         });
                         this.unbindDragLeaveListener = this.renderer.listen(this.el.nativeElement, 'dragleave', (dragEvent) => {
-                            this.dragLeave(dragEvent);
+                            // relatedTarget should be the element we're ENTERING.
+                            // If we're entering this element then we're leaving a child of this element, do nothing.
+                            if (dragEvent.relatedTarget !== this.el.nativeElement) {
+                                var element = dragEvent.relatedTarget.parentNode;
+
+                                // Crawl through the element's ancestors until we find either null or this element.
+                                while (element) {
+                                    // If we find this element do nothing.
+                                    if (element === this.el.nativeElement) {
+                                        return;
+                                    }
+
+                                    element = element.parentNode;
+                                }
+
+                                // If we've hit this point then we've reached the top of the tree.
+                                // We're leaving this element and entering a non-ancestor.
+                                // Fire the event.
+                                this.dragLeave(dragEvent);
+                            }
                         });
                     });
                 }
